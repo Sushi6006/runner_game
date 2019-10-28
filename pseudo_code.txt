@@ -1,0 +1,205 @@
+# argument "self" will not be listed
+
+import tkinter
+import randint from random
+
+create a class called GUI:
+
+	create an integer constant named WIDTH and make it equal to 600
+	create an integer constant named HEIGHT and make it equal to 300
+	create a tuple constant named FONT and make it equal to ("Courier", 40)
+	create an integer constant named PACK_PADDING and make it equal to 80
+
+	define function __init__ for class GUI:
+
+		create a Tk window and store it in self.root
+		set the title of self.root to be "Jumping Square"
+		set the height and width of self.root using self.WIDTH & self.HEIGHT
+		make self.root not resizable
+
+		create a MenuScreen named self.menu, and pass in self.root and self as arguments
+		create a variable named self.game, set it to None
+
+		switch to menu screen by calling self.switch_screen and pass in "init" as the argument
+
+		self.root.mainloop()
+
+	define function switch_screen for class GUI that takes one argument (original window, "o_win"):
+		if "o_win" equals to "menu":
+			unpack main_frame of the menu screen
+			create a GameScreen and store it in self.game
+			bind keys for game screen by using self.bind_keys and passing in "game"
+			pack main_frame of the game screen
+		else, if o_win equals to "game":
+			unpack main_frame of the game screen
+			bind keys for menu screen by using self.bind_keys and passing in "menu"
+			pack main_frame of the menu screen with y padding of self.PACK_PADDING
+		else, if o_win equals to "init":
+			bind keys for menu screen by using self.bind_keys and passing in "menu"
+			pack main_frame of the menu screen with y padding of self.PACK_PADDING
+
+	define function bind_keys for class GUI that takes one argument - b:
+		if b equals to "game":
+			bind space key to function self.tapped()
+			bind return key to function self.tapped()
+			bind mouse left button to function self.tapped()
+			bind up key to function self.tapped()
+		else, if b equals to "menu":
+			bind space key to function self.menu.start()
+			bind return key to function self.menu.start()
+			unbind mouse left button
+			unbind up key
+		else:
+			unbind spacebar
+			unbind return key
+			unbind mouse left button
+			unbind up key
+
+	define function tapped for class GUI that takes one argument - event:
+		if spikes in self.game is an empty list:
+			call function start_moving() from self.game
+		if the velocity of the ball (self.game.ball.y_vel) is 0 and the ball is on the line (use self.game.ball.on_line())
+			set the colour of the ball (self.game.ball.ball) to be a random colour
+			set the velocity of the ball (self.game.ball.y_vel) to INIT_V of the GameScreen class
+
+
+create a class called MenuScreen for menu screen:
+
+	define function __init__ for class MenuScreen that takes two arguments - window and gui_object:
+		store window in self.root
+		store gui_object in self.gui_object
+
+		create a new frame with the parent self.root and store it in self.main_frame
+		create a label with the parent self.main_frame, text "Jumping Square" with the font GUI.FONT, and store it in self.title
+		create a button with the parent self.main_frame and text "Start", call self.start() when pressed
+		pack self.title to window with y padding of 20px
+		pack self.start_button to window with y padding of 20px
+
+	define function start for class GUI:
+		call switch_screen method of gui_object, pass in "menu" as the argument o_win(original window)
+
+
+create a class called GameScreen for game screen:
+
+	create an integer constant called BASE_Y and make it equal to GUI.HEIGHT - 50
+	create an integer constant called MIN_D and make it equal to 130
+	create an integer constant called MAX_D and make it equal to 250
+
+	define function __init__ for class GameScreen that takes two arguments - window and gui_object:
+		store window in self.root
+		store gui_object in self.gui_object
+		create a frame with the parent self.root and store it in self.main_frame
+		create a canvas with the parent self.main_frame, width of GUI.WIDTH and height of GUI.HEIGHT, store it in self.canv
+		pack canvas self.canv
+
+		create a ball using class Ball, pass in self.canv, and store it in self.ball
+		create an empty list - self.spikes
+		create an integer variable self.d_in_spikes, make it equal to a random integer between self.MIN_D and self.MAX_D
+
+		create a list of 4 numbers (coordinates of the line, 0, self.BASE_Y, GUI.WIDTH, self.BASE_Y) and call it line_coord
+		create a black line that is 2px wide on self.canv and store it in self.line
+
+		create an integer variable slp (score label paddings) that is equal to 40
+		create an integer variable self.score and set it to 0
+		create a label on self.canv at (GUI.WIDTH - slp, slp) of the score (self.score) with the font GUI.FONT, and store it in self.score_label
+
+		create a variable for canceling root.after called self.a, and set it to False
+
+	define function start_moving for class GameScreen:
+		call self.move_objects() after 16 milliseconds, store self.root.after in self.a
+		spawn a spike using self.spawn_spikes()
+
+	define function move_objects for class GameScreen:
+		call the move method of every item in self.spikes (use for loop)
+		if the distance between GUI.WIDTH and the right x coordinate of the last spike in self.spikes is greater than self.d_in_spikes:
+			spawn a spike using self.spawn_spikes()
+			set self.d_in_spikes to be a random integer between self.MIN_D and self.MAX_D
+		if the right x coordinate of the first spike in self.spikes is smaller than 0:
+			delete the spike shape from canvas using destroy() from the Spike class
+			delete the spike from the list
+
+		call the move method of self.ball
+		if the ball is not above the line:
+			move the ball upwards, to where the line is
+			set the velocity of the ball (self.ball.y_vel) to be 0
+
+		add 0.05 to self.score
+		change the text of self.score_label to be the self.score, round up to closest integer
+
+		call self.move_objects() after 16 milliseconds, store self.root.after in self.a
+
+		if the first spike in self.spikes overlaps with self.ball:
+			call self.end_game() and pass in rounded self.score
+
+	define function spawn_spikes for class GameScreen:
+		append a Spike object in self.spikes
+
+	define function end_game for class GameScreen that takes one argument - current_score:
+		define function go_menu:
+			go to menu screen by calling self.gui_object.switch_screen() and passing in "game"
+		cancel self.root.after using self.a
+		unpack self.canv
+		bind keys for game over screen by using self.bind_keys and passing in "end game"
+
+		create a frame with parent self.root, and store it in end_screen
+		pack end_screen
+		create a label on end_screen with the text "Game Over\nScore: " + current_score, with the font GUI.FONT, store the label in go_label
+		create a button on end_screen with the text "Continue", calls go_menu() when pressed, store the button in continue_button
+		pack go_label
+		pack continue_button
+
+
+create a class called Ball for the ball:
+
+	create an integer constant called RADIUS and make it equal to 15
+	create an integer constant called GRAVITY and make it equal to 3
+	create an integer constant called X_POS and make it equal to 50
+	create an integer constant called INIT_V and make it equal to -15
+
+	define function __init__ for class Ball that takes one argument - canvas:
+		store canvas in self.canv
+		create a list called ball_coord which contains the coordinates of the ball [self.X_POS, GameScreen.BASE_Y - 2 * self.RADIUS, self.X_POS + 2 * self.RADIUS, GameScreen.BASE_Y]
+		create a black rectangle using ball_coord on self.canv, and store it in self.ball
+		create an integer variable self.y_vel, and set it to 0
+
+	define function above_line for class Ball:
+		return True if the ball is above the line, False if not
+
+	define function on_line for class Ball:
+		return True if the ball is right on the line, False if not
+
+	define function move for class Ball:
+		move the ball up by self.y_vel pixels
+		if the ball is above the line:
+			add self.GRAVITY to self.y_vel
+
+
+create a class called Spike for the spikes:
+
+	create an integer constant called ST_HEIGHT and make it equal to 10
+	create an integer constant called WIDTH and make it equal to 3
+	create an integer constant called MAX_NUM and make it equal to 3
+	create an integer constant called VEL and make it equal to -7
+
+	define function __init__ for class Spike that takes one argument - canvas:
+		store canvas in self.canv
+		get a random number between 1 and 3, and store it in "number"
+		create a list named self.coords that contains 2 integers, x1 and y1 of the spike - [GUI.WIDTH, GameScreen.BASE_Y]
+		loop for number times using i as the looping variable:
+			append GUI.WIDTH + (i * 2 + 1) * self.WIDTH to the list self.coords
+			append GameScreen.BASE_Y - randint(1, 2) * self.ST_HEIGHT to the list self.coords
+			append GUI.WIDTH + (i + 1) * 2 * self.WIDTH to the list self.coords
+			append GameScreen.BASE_Y to the list self.coords
+		create a polygon using self.coords on the canvas, and store it in self.spike
+
+	define function get_rx for class Spike:
+		return the right x coordinate of the spike
+
+	define function move for class Spike:
+		move the spike to the right by self.VEL pixels (self.VEL is negative, so it's moving to the left)
+
+	define function destroy for class Spike:
+		delete polygon self.spike from self.canv
+
+
+create a GUI object
